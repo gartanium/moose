@@ -29,18 +29,18 @@ defineADValidParams(ADDGDiffusion,
 template <ComputeStage compute_stage>
 ADDGDiffusion<compute_stage>::ADDGDiffusion(const InputParameters & parameters)
   : ADDGKernel<compute_stage>(parameters),
-    _epsilon(adGetParam<Real>("epsilon")),
-    _sigma(adGetParam<Real>("sigma")),
-    _diff(adGetADMaterialProperty<Real>("diff")),
-    _diff_neighbor(adGetNeighborADMaterialProperty<Real>("diff"))
+    _epsilon(getParam<Real>("epsilon")),
+    _sigma(getParam<Real>("sigma")),
+    _diff(getADMaterialProperty<Real>("diff")),
+    _diff_neighbor(getNeighborADMaterialProperty<Real>("diff"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 ADDGDiffusion<compute_stage>::computeQpResidual(Moose::DGResidualType type)
 {
-  ADResidual r = 0;
+  ADReal r = 0;
 
   const unsigned int elem_b_order = _var.order();
   const double h_elem =

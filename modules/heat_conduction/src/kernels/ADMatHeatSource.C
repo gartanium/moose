@@ -22,13 +22,13 @@ defineADValidParams(
 template <ComputeStage compute_stage>
 ADMatHeatSource<compute_stage>::ADMatHeatSource(const InputParameters & parameters)
   : ADKernel<compute_stage>(parameters),
-    _scalar(adGetParam<Real>("scalar")),
-    _material_property(adGetADMaterialProperty<Real>("material_property"))
+    _scalar(getParam<Real>("scalar")),
+    _material_property(getADMaterialProperty<Real>("material_property"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 ADMatHeatSource<compute_stage>::computeQpResidual()
 {
   return -_scalar * _material_property[_qp] * _test[_i][_qp];

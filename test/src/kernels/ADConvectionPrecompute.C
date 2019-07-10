@@ -21,12 +21,12 @@ defineADValidParams(ADConvectionPrecompute,
 
 template <ComputeStage compute_stage>
 ADConvectionPrecompute<compute_stage>::ADConvectionPrecompute(const InputParameters & parameters)
-  : ADKernelValue<compute_stage>(parameters), _velocity(adGetParam<RealVectorValue>("velocity"))
+  : ADKernelValue<compute_stage>(parameters), _velocity(getParam<RealVectorValue>("velocity"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 ADConvectionPrecompute<compute_stage>::precomputeQpResidual()
 {
   // velocity * _grad_u[_qp] is actually doing a dot product

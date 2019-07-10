@@ -26,14 +26,14 @@ template <ComputeStage compute_stage>
 INSADTemperatureAdvection<compute_stage>::INSADTemperatureAdvection(
     const InputParameters & parameters)
   : ADKernelValue<compute_stage>(parameters),
-    _rho(adGetADMaterialProperty<Real>("rho_name")),
-    _cp(adGetADMaterialProperty<Real>("cp_name")),
+    _rho(getADMaterialProperty<Real>("rho_name")),
+    _cp(getADMaterialProperty<Real>("cp_name")),
     _U(adCoupledVectorValue("velocity"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 INSADTemperatureAdvection<compute_stage>::precomputeQpResidual()
 {
   return _rho[_qp] * _cp[_qp] * _U[_qp] * _grad_u[_qp];
@@ -59,14 +59,14 @@ template <ComputeStage compute_stage>
 INSADTemperatureAdvectionSUPG<compute_stage>::INSADTemperatureAdvectionSUPG(
     const InputParameters & parameters)
   : ADKernelSUPG<compute_stage>(parameters),
-    _rho(adGetADMaterialProperty<Real>("rho_name")),
-    _cp(adGetADMaterialProperty<Real>("cp_name")),
+    _rho(getADMaterialProperty<Real>("rho_name")),
+    _cp(getADMaterialProperty<Real>("cp_name")),
     _U(adCoupledVectorValue("velocity"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 INSADTemperatureAdvectionSUPG<compute_stage>::precomputeQpStrongResidual()
 {
   return _rho[_qp] * _cp[_qp] * _U[_qp] * _grad_u[_qp];

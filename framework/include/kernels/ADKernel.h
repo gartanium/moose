@@ -86,7 +86,7 @@ public:
 
 protected:
   /// Compute this Kernel's contribution to the residual at the current quadrature point
-  virtual ADResidual computeQpResidual() = 0;
+  virtual ADReal computeQpResidual() = 0;
 
   /// This is a regular kernel so we cast to a regular MooseVariable
   MooseVariableFE<T> & _var;
@@ -114,6 +114,9 @@ protected:
 
   /// The current shape functions
   const ADTemplateVariablePhiValue & _phi;
+
+  ADReal _r;
+  std::vector<DualReal> _residuals;
 
   /// The current gradient of the shape functions
   const typename VariablePhiGradientType<T, compute_stage>::type & _grad_phi;

@@ -22,12 +22,12 @@ defineADValidParams(
 template <ComputeStage compute_stage>
 INSADMass<compute_stage>::INSADMass(const InputParameters & parameters)
   : ADKernelValue<compute_stage>(parameters),
-    _mass_strong_residual(adGetADMaterialProperty<Real>("mass_strong_residual"))
+    _mass_strong_residual(getADMaterialProperty<Real>("mass_strong_residual"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADResidual
+ADReal
 INSADMass<compute_stage>::precomputeQpResidual()
 {
   return _mass_strong_residual[_qp];

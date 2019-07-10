@@ -2378,7 +2378,7 @@ FEProblemBase::getMaterial(std::string name,
   }
 
   std::shared_ptr<Material> material = _all_materials[type].getActiveObject(name, tid);
-  if (!no_warn && material->getParam<bool>("compute") && type == Moose::BLOCK_MATERIAL_DATA)
+  if (!no_warn && material->getParamTempl<bool>("compute") && type == Moose::BLOCK_MATERIAL_DATA)
     mooseWarning("You are retrieving a Material object (",
                  material->name(),
                  "), but its compute flag is set to true. This indicates that MOOSE is "
@@ -2462,7 +2462,7 @@ FEProblemBase::addMaterialHelper(std::vector<MaterialWarehouse *> warehouses,
   {
     // Create the general Block/Boundary Material object
     std::shared_ptr<Material> material = _factory.create<Material>(mat_name, name, parameters, tid);
-    bool discrete = !material->getParam<bool>("compute");
+    bool discrete = !material->getParamTempl<bool>("compute");
 
     // If the object is boundary restricted do not create the neighbor and face objects
     if (material->boundaryRestricted())
@@ -3354,8 +3354,9 @@ FEProblemBase::reinitBecauseOfGhostingOrNewGeomObjects()
   needs_reinit = needs_reinit || !_geometric_search_data._nearest_node_locators.empty() ||
                  _mortar_data.hasObjects();
   needs_reinit =
-      needs_reinit ||
-      (_displaced_problem && !_displaced_problem->geomSearchData()._nearest_node_locators.empty());
+      needs_reinit || (_displaced_problem &&
+                       (!_displaced_problem->geomSearchData()._nearest_node_locators.empty() ||
+                        _mortar_data.hasDisplacedObjects()));
   _communicator.max(needs_reinit);
 
   if (needs_reinit)
@@ -3773,7 +3774,7 @@ FEProblemBase::addTransfer(const std::string & transfer_name,
   {
     ExecFlagEnum & exec_enum = parameters.set<ExecFlagEnum>("execute_on", true);
     std::shared_ptr<MultiApp> multiapp = getMultiApp(parameters.get<MultiAppName>("multi_app"));
-    exec_enum = multiapp->getParam<ExecFlagEnum>("execute_on");
+    exec_enum = multiapp->getParamTempl<ExecFlagEnum>("execute_on");
   }
 
   // Create the Transfer objects
@@ -4622,9 +4623,33 @@ FEProblemBase::computeResidualTags(const std::set<TagID> & tags)
   if (_displaced_problem)
   {
     _aux->compute(EXEC_PRE_DISPLACE);
-    _displaced_problem->updateMesh();
-    if (_mortar_data.hasDisplacedObjects())
-      updateMortarMesh();
+    try
+    {
+      try
+      {
+        _displaced_problem->updateMesh();
+        if (_mortar_data.hasDisplacedObjects())
+          updateMortarMesh();
+      }
+      catch (libMesh::LogicError & e)
+      {
+        throw MooseException("We caught a libMesh error");
+      }
+    }
+    catch (MooseException & e)
+    {
+      setException(e.what());
+    }
+    try
+    {
+      // Propagate the exception to all processes if we had one
+      checkExceptionAndStopSolve();
+    }
+    catch (MooseException &)
+    {
+      // Just end now. We've inserted our NaN into the residual vector
+      return;
+    }
   }
 
   for (THREAD_ID tid = 0; tid < n_threads; tid++)
@@ -5991,7 +6016,7 @@ FEProblemBase::addOutput(const std::string & object_type,
     exclude.push_back("execute_on");
 
     // --show-input should enable the display of the input file on the screen
-    if (_app.getParam<bool>("show_input") && parameters.get<bool>("output_screen"))
+    if (_app.getParamTempl<bool>("show_input") && parameters.get<bool>("output_screen"))
       parameters.set<ExecFlagEnum>("execute_input_on") = EXEC_INITIAL;
   }
 

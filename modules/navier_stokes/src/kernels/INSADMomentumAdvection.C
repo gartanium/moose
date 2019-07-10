@@ -20,12 +20,12 @@ template <ComputeStage compute_stage>
 INSADMomentumAdvection<compute_stage>::INSADMomentumAdvection(const InputParameters & parameters)
   : ADVectorKernelValue<compute_stage>(parameters),
     _convective_strong_residual(
-        adGetADMaterialProperty<RealVectorValue>("convective_strong_residual"))
+        getADMaterialProperty<RealVectorValue>("convective_strong_residual"))
 {
 }
 
 template <ComputeStage compute_stage>
-ADVectorResidual
+ADRealVectorValue
 INSADMomentumAdvection<compute_stage>::precomputeQpResidual()
 {
   return _convective_strong_residual[_qp];

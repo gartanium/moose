@@ -226,8 +226,7 @@ Assembly::~Assembly()
   _ad_curvatures.release();
   _ad_coord.release();
 
-  if (_qrule_msm)
-    delete _qrule_msm;
+  delete _qrule_msm;
 }
 
 void
@@ -486,26 +485,32 @@ Assembly::neighborVolume() const
 void
 Assembly::createQRules(QuadratureType type, Order order, Order volume_order, Order face_order)
 {
-  _holder_qrule_volume.clear();
+  for (auto & it : _holder_qrule_volume)
+    delete it.second;
   for (unsigned int dim = 0; dim <= _mesh_dimension; dim++)
     _holder_qrule_volume[dim] = QBase::build(type, dim, volume_order).release();
 
-  _holder_qrule_face.clear();
+  for (auto & it : _holder_qrule_face)
+    delete it.second;
   for (unsigned int dim = 0; dim <= _mesh_dimension; dim++)
     _holder_qrule_face[dim] = QBase::build(type, dim - 1, face_order).release();
 
-  _holder_qrule_neighbor.clear();
+  for (auto & it : _holder_qrule_neighbor)
+    delete it.second;
   for (unsigned int dim = 0; dim <= _mesh_dimension; dim++)
     _holder_qrule_neighbor[dim] = new ArbitraryQuadrature(dim - 1, face_order);
 
-  _holder_qrule_arbitrary.clear();
+  for (auto & it : _holder_qrule_arbitrary)
+    delete it.second;
   for (unsigned int dim = 0; dim <= _mesh_dimension; dim++)
     _holder_qrule_arbitrary[dim] = new ArbitraryQuadrature(dim, order);
 
-  _holder_qrule_arbitrary_face.clear();
+  for (auto & it : _holder_qrule_arbitrary_face)
+    delete it.second;
   for (unsigned int dim = 0; dim <= _mesh_dimension; dim++)
     _holder_qrule_arbitrary_face[dim] = new ArbitraryQuadrature(dim - 1, face_order);
 
+  delete _qrule_msm;
   _const_qrule_msm = _qrule_msm = QBase::build(type, _mesh_dimension - 1, face_order).release();
   _fe_msm->attach_quadrature_rule(_qrule_msm);
 }
@@ -1767,6 +1772,8 @@ Assembly::reinitElemFaceRef(const Elem * elem,
       const_cast<std::vector<Point> &>((*_holder_fe_face_helper[elem_dim])->get_xyz()));
   _current_normals.shallowCopy(
       const_cast<std::vector<Point> &>((*_holder_fe_face_helper[elem_dim])->get_normals()));
+  _current_tangents.shallowCopy(const_cast<std::vector<std::vector<Point>> &>(
+      (*_holder_fe_face_helper[elem_dim])->get_tangents()));
   // Note that if the user did pass in points and not weights to this method, JxW will be garbage
   // and should not be used
   _current_JxW_face.shallowCopy(
